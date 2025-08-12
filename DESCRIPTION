@@ -1,0 +1,16 @@
+Package: pmplot
+Title: Plot Brackets and Panel Markups for ggplot2
+Version: 0.1.0
+Authors@R: 
+    person("Allison", "Loan", email = "allison.loan@hc-sc.gc.ca", role = c("aut","cre"))
+Description: Utilities to draw top/bottom/left/right brackets with labels in panel-normalized coordinates (NPC) and helpers to add multiple or facet-targeted brackets to ggplot objects.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    ggplot2,
+    grid
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

@@ -1,0 +1,411 @@
+
+
+##Tissue weight stats and plot
+```{r}
+library(readxl)
+library(forcats) 
+library(tidyr)  
+library(dplyr)  
+library(ggsignif)
+library(ggplot2)
+library(broom) 
+library(rstatix)
+library(ggpubr)
+library(stringr)
+library(viridis)
+library(emmeans)
+library(purrr)
+library(car)
+library(extrafont)
+library(plotrix)
+library(FSA) 
+library(ggpubr) 
+```
+
+#v1
+```{r}
+add_verticle_right_brackets <- function(label, ystart, yend, x, text_offset = 0.02) {
+  grobTree(
+    # Vertical line
+    linesGrob(
+      x = unit(c(x, x), "npc"),
+      y = unit(c(ystart, yend), "npc"),
+      gp = gpar(lwd = 1.5)
+    ),
+    # Top cap
+    linesGrob(
+      x = unit(c(x, x - 0.015), "npc"),
+      y = unit(ystart, "npc"),
+      gp = gpar(lwd = 1.5)
+    ),
+    # Bottom cap
+    linesGrob(
+      x = unit(c(x, x - 0.015), "npc"),
+      y = unit(yend, "npc"),
+      gp = gpar(lwd = 1.5)
+    ),
+textGrob(
+  label,
+  x = unit(x + text_offset, "npc"),
+  y = unit(mean(c(ystart, yend)), "npc"),
+  rot = 270,  # Changed from 90 to 180 degrees
+  gp = gpar(cex = 1.2, fontface = "bold")
+    )
+  )
+}
+add_horizontal_top_brackets <- function(label, xstart, xend, y_npc = 0.98, label_offset = 0.1, cap = 0.015) {
+  grobTree(
+    # Horizontal line (npc within the panel)
+    linesGrob(
+      x = unit(c(xstart, xend), "npc"),
+      y = unit(c(y_npc, y_npc), "npc"),
+      gp = gpar(lwd = 1.5)
+    ),
+    # Left cap
+    linesGrob(
+      x = unit(xstart, "npc"),
+      y = unit(c(y_npc, y_npc - cap), "npc"),
+      gp = gpar(lwd = 1.5)
+    ),
+    # Right cap
+    linesGrob(
+      x = unit(xend, "npc"),
+      y = unit(c(y_npc, y_npc - cap), "npc"),
+      gp = gpar(lwd = 1.5)
+    ),
+    # Label ABOVE the line
+    textGrob(
+      label,
+      x = unit((xstart + xend)/2, "npc"),
+      y = unit(y_npc + label_offset, "npc"),
+      gp = gpar(cex = 0.5, fontface = "bold")
+    )
+  )
+}
+
+# 2) Helper that adds *two* brackets (Female/Male) to every facet at the top
+add_mhorizontal_top_brackets <- function(p, y_npc = 0.98, label_offset = 0.1) {
+  p +
+    annotation_custom(
+      grob = add_horizontal_top_brackets("Female", xstart = 0.08, xend = 0.48, y_npc = y_npc, label_offset = label_offset),
+      xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf
+    ) +
+    annotation_custom(
+      grob = add_horizontal_top_brackets("Male",   xstart = 0.52, xend = 0.92, y_npc = y_npc, label_offset = label_offset),
+      xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf
+    )
+}
+```
+
+```{r}
+# ---- Imports ----
+library(pmplot)
+library(ggplot2)
+
+# ---- Core grob builder (npc units within panel) ----
+bracket_grob <- function(
+  side = c("top","bottom","left","right"),
+  start, end, pos,
+  label,
+  cap = 0.015,
+  label_offset = 0.05,
+  lwd = 1.5,
+  cex = 0.9,
+  fontface = "bold"
+){
+  side <- match.arg(side)
+
+  # map orientation -> line coords + cap direction + label placement
+  if (side %in% c("top","bottom")) {
+    # Horizontal line at y = pos, spanning x = start..end
+    y_line <- unit(c(pos, pos), "npc")
+    x_line <- unit(c(start, end), "npc")
+    # caps
+    cap_dir <- if (side == "top") -cap else cap
+    x_capL <- unit(start, "npc")
+    x_capR <- unit(end,   "npc")
+    y_cap  <- unit(c(pos, pos + cap_dir), "npc")
+    # label
+    y_lab <- unit(pos + if (side == "top") label_offset else -label_offset, "npc")
+    x_lab <- unit((start + end)/2, "npc")
+    rot   <- 0
+
+    grobTree(
+      # main line
+      linesGrob(x = x_line, y = y_line, gp = gpar(lwd = lwd)),
+      # left cap
+      linesGrob(x = x_capL, y = y_cap,  gp = gpar(lwd = lwd)),
+      # right cap
+      linesGrob(x = x_capR, y = y_cap,  gp = gpar(lwd = lwd)),
+      # label
+      textGrob(label, x = x_lab, y = y_lab, rot = rot, gp = gpar(cex = cex, fontface = fontface))
+    )
+
+  } else {
+    # Vertical line at x = pos, spanning y = start..end
+    x_line <- unit(c(pos, pos), "npc")
+    y_line <- unit(c(start, end), "npc")
+    # caps
+    cap_dir <- if (side == "right") -cap else cap
+    y_capT <- unit(start, "npc")
+    y_capB <- unit(end,   "npc")
+    x_cap  <- unit(c(pos, pos + cap_dir), "npc")
+    # label
+    x_lab <- unit(pos + if (side == "right") label_offset else -label_offset, "npc")
+    y_lab <- unit((start + end)/2, "npc")
+    rot   <- if (side == "right") 270 else 90
+
+    grobTree(
+      # main line
+      linesGrob(x = x_line, y = y_line, gp = gpar(lwd = lwd)),
+      # top cap
+      linesGrob(x = x_cap,  y = y_capT, gp = gpar(lwd = lwd)),
+      # bottom cap
+      linesGrob(x = x_cap,  y = y_capB, gp = gpar(lwd = lwd)),
+      # label
+      textGrob(label, x = x_lab, y = y_lab, rot = rot, gp = gpar(cex = cex, fontface = fontface))
+    )
+  }
+}
+
+# ---- Sugar constructors (match your current naming) ----
+add_vertical_right_grob  <- function(label, ystart, yend, x, ...) bracket_grob("right",  start = ystart, end = yend, pos = x, label = label, ...)
+add_vertical_left_grob   <- function(label, ystart, yend, x, ...)   bracket_grob("left",   start = ystart, end = yend, pos = x, label = label, ...)
+add_horizontal_top_grob  <- function(label, xstart, xend, y, ...)   bracket_grob("top",    start = xstart, end = xend, pos = y, label = label, ...)
+add_horizontal_bot_grob  <- function(label, xstart, xend, y, ...)   bracket_grob("bottom", start = xstart, end = xend, pos = y, label = label, ...)
+
+# ---- Add a single grob to a ggplot (panel npc) ----
+add_bracket <- function(p, grob) {
+  p + annotation_custom(grob = grob, xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf)
+}
+
+# ---- Add many brackets at once (vectorized specs) ----
+# For horizontal: pass vectors of labels/xstart/xend; single y (npc) shared
+add_many_horizontal <- function(p, labels, xstart, xend, y, side = c("top","bottom"), ...) {
+  side <- match.arg(side)
+  for (i in seq_along(labels)) {
+    g <- if (side == "top") {
+      add_horizontal_top_grob(labels[i], xstart[i], xend[i], y, ...)
+    } else {
+      add_horizontal_bot_grob(labels[i], xstart[i], xend[i], y, ...)
+    }
+    p <- add_bracket(p, g)
+  }
+  p
+}
+
+# For vertical: pass vectors of labels/ystart/yend; single x (npc) shared
+add_many_vertical <- function(p, labels, ystart, yend, x, side = c("right","left"), ...) {
+  side <- match.arg(side)
+  for (i in seq_along(labels)) {
+    g <- if (side == "right") {
+      add_vertical_right_grob(labels[i], ystart[i], yend[i], x, ...)
+    } else {
+      add_vertical_left_grob(labels[i], ystart[i], yend[i], x, ...)
+    }
+    p <- add_bracket(p, g)
+  }
+  p
+}
+
+# ---- Faceted helper: target specific panels via data= ----
+# specs_df must include facet columns present in p$data (e.g., Sex, PFAS, etc.)
+# Also include npc columns: start, end, pos, label, side
+add_faceted_brackets <- function(p, specs_df,
+                                 start_col = "start", end_col = "end", pos_col = "pos",
+                                 label_col = "label", side_col = "side", ...) {
+
+  # Build and add one annotation per row; data row controls which facet(s) it lands in
+  for (i in seq_len(nrow(specs_df))) {
+    side  <- specs_df[[side_col]][i]
+    start <- specs_df[[start_col]][i]
+    end   <- specs_df[[end_col]][i]
+    pos   <- specs_df[[pos_col]][i]
+    lab   <- specs_df[[label_col]][i]
+
+    grob_i <- switch(
+      side,
+      "top"    = bracket_grob("top",    start, end, pos, lab, ...),
+      "bottom" = bracket_grob("bottom", start, end, pos, lab, ...),
+      "left"   = bracket_grob("left",   start, end, pos, lab, ...),
+      "right"  = bracket_grob("right",  start, end, pos, lab, ...)
+    )
+
+    # Use the row itself as data to bind to that facet only
+    p <- p + annotation_custom(
+      grob = grob_i,
+      xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf,
+      data = specs_df[i, , drop = FALSE]
+    )
+  }
+  p
+}
+
+```
+
+##testing
+```{r}
+library(pmplot)
+p <- ggplot(mtcars, aes(mpg, wt)) + geom_point() +
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(20, 20, 20, 20))
+
+# Add one bracket at the top
+p + annotation_custom(
+  grob = bracket_grob("top", start = 0.2, end = 0.8, pos = 0.95, label = "Top Bracket"),
+  xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf
+)
+print(p)
+# Right-side vertical bracket
+p + annotation_custom(
+  grob = add_vertical_right_grob("Right Bracket", ystart = 0.2, yend = 0.8, x = 0.95),
+  xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf
+)
+print(p)
+# Left-side vertical bracket
+p + annotation_custom(
+  grob = add_vertical_left_grob("Left Bracket", ystart = 0.2, yend = 0.8, x = 0.05),
+  xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf
+)
+print(p)
+# Top horizontal bracket
+p + annotation_custom(
+  grob = add_horizontal_top_grob("Top Bracket", xstart = 0.2, xend = 0.8, y = 0.95),
+  xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf
+)
+print(p)
+# Bottom horizontal bracket
+p + annotation_custom(
+  grob = add_horizontal_bot_grob("Bottom Bracket", xstart = 0.2, xend = 0.8, y = -.1),
+  xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf
+)
+print(p)
+
+```
+
+```{r}
+library(pmplot)
+library(ggplot2)
+library(grid)
+p <- ggplot(mtcars, aes(mpg, wt)) + 
+  geom_point() 
+
+p <- add_many_horizontal(
+  p,
+  labels = "Group A",
+  xstart = 0.1,
+  xend   = 0.9,
+  y      = -.15,
+  side   = "bottom",
+  label_offset = 0.05
+)
+png(filename = "../1 group horizontal bottom.png", width = 800, height = 600, res = 150)
+print(p)
+dev.off()
+
+
+p <- add_many_vertical(
+  p,
+  labels = c("Low", "High"),
+  ystart = c(0.01, 0.48),
+  yend   = c(0.49, 0.99),
+  x      = 1.02,
+  side   = "right",
+  label_offset = 0.025
+)
+png(filename = "../2 group veritcle right.png", width = 800, height = 600, res = 150)
+print(p)
+dev.off()
+
+# Add BOTH: horizontal (bottom) + vertical (right)
+p1 <- add_many_horizontal(
+  p,
+  labels = "Group A",
+  xstart = 0.1,
+  xend   = 0.9,
+  y      = 1,
+  side   = "top",
+  label_offset = 0.05
+)
+
+p2 <- add_many_vertical(
+  p1,
+  labels = c("Low", "High"),
+  ystart = c(0.01, 0.48),
+  yend   = c(0.49, 0.99),
+  x      = 1.02,
+  side   = "right",
+  label_offset = 0.025
+)
+
+# Save once, after both are added
+png(filename = "../both-brackets.png", width = 800, height = 600, res = 150)
+print(p2)  # keep print() for ggplot rendering
+dev.off()
+
+```
+```{r}
+p <- ggplot(mtcars, aes(mpg, wt)) + geom_point()
+
+specs <- rbind(
+  data.frame(side="right", start=0.15, end=0.85, pos=1.18, label="Right A"),
+  data.frame(side="top",   start=0.05, end=0.45, pos=1.06, label="Top 1"),
+  data.frame(side="top",   start=0.55, end=0.95, pos=1.14, label="Top 2")
+)
+
+p <- add_brackets(p, specs, base_pt = 40, step_pt = 14)
+p
+p <- ggplot(mtcars, aes(mpg, wt)) + geom_point()
+
+p <- add_vertical_stack(
+  p,
+  labels = paste("B", 1:3),
+  ystart = c(0.10, 0.40, 0.70),
+  yend   = c(0.30, 0.60, 0.90),
+  x      = c(1.04, 1.10, 1.18),   # 3 layers outside on the right
+  side   = "right"
+)
+p
+
+p <- ggplot(mtcars, aes(mpg, wt)) + geom_point()
+
+p <- add_horizontal_stack(
+  p,
+  labels = c("Female", "Male"),
+  xstart = c(0.08, 0.52),
+  xend   = c(0.48, 0.92),
+  y      = c(1.06, 1.14),     # stacked above panel
+  side   = "top"              # auto margin for stacking
+)
+p
+p <- ggplot(mtcars, aes(mpg, wt)) + geom_point()
+
+specs <- data.frame(
+  side  = c("right", "right", "top", "top"),  # side of each bracket
+  start = c(0.1, 0.5, 0.1, 0.5),              # ystart for vertical, xstart for horizontal
+  end   = c(0.4, 0.9, 0.4, 0.9),              # yend for vertical, xend for horizontal
+  pos   = c(1.05, 1.05, 1.05, 1.05),          # x for vertical, y for horizontal
+  label = c("VR1", "VR2", "HT1", "HT2")
+)
+
+# Add all at once
+p_with_brackets <- add_brackets(p, specs, label_offset =0.025)
+
+p_with_brackets
+
+p <- ggplot(mtcars, aes(mpg, wt)) + geom_point()
+
+p <- add_horizontal_stack(
+  p,
+  labels = c("female", "male", "pfos"),
+  xstart = c(0.10, 0.55, 0.1),
+  xend   = c(0.45, 0.95, 0.90),
+  y      = c(1.05, 1.05, 1.15),   # 3 layers outside on the right
+  side   = "top"
+)
+p
+??add_horizontal_stack
+```
+
+
+
