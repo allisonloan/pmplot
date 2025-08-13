@@ -27,7 +27,7 @@ The **pmplot** package can be demonstrated using the [`palmerpenguins`] dataset.
 These examples show how to add horizontal and vertical brackets in various layouts, handle legends, and combine panels into a final publication-ready figure.
 a
 ### *Final Output — Combined Plots Using Patchwork **  
-![Plot 1](R/plot/final_plot_A4.png)
+![Final publication ready figure](R/plot/final_plot_A4.png)
 ### **Example 1 — Mixed Horizontals Top + Vertical Right **  
 - **Data**: Bill length vs flipper length, colored by species.  
 - **Brackets**:  
