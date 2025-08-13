@@ -1,0 +1,122 @@
+
+#Load
+```{r}
+library(ggplot2)
+library(palmerpenguins)
+library(pmplot)  
+library(grid) 
+```
+
+#pmplot example using penguins dataset
+```{r}
+# Clean data for plotting
+peng <- subset(
+  penguins,
+  !is.na(species) & !is.na(island) & !is.na(sex) &
+    !is.na(bill_length_mm) & !is.na(flipper_length_mm)
+)
+
+# A base scatter we’ll reuse
+base_b <- ggplot(peng, aes(bill_length_mm, flipper_length_mm, color = species)) +
+  geom_point(alpha = 0.6) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(x = "Bill length (mm)", y = "Flipper length (mm)", color = "Species") +
+  theme_minimal(base_size = 12)
+
+# P1 — Horizontal and verticle mixed
+
+specs1 <- data.frame(
+  side  = c("top","top", "right","right"),
+  start = c(0.08, 0.43, 0.20, 0.60),
+  end   = c(0.4, 0.95, 0.50, 0.90),
+  pos   = c(1.04, 1.04, 1.04, 1.04),
+  label = c("Short Bills", "Long Bills", "Short Flippers", "Long Flippers")
+)
+p1 <- add_brackets(base_b, specs1, label_offset = 0.04)
+p1 + theme(
+  legend.position = c(1.15, 0.5),                # far outside the panel
+  legend.justification = c("left", "center"),    # anchor legend's left edge
+  plot.margin = margin(t = 40, r = 150, b = 0, l = 0)  # big right margin
+)
+ggsave(filename = "p1.png", dpi = 300)
+
+print(p1)
+
+# P2 — Stacked horizontals (top) 
+
+p2 <- add_horizontal_stack(
+  base_b,
+  labels = c("Adelie", "Chinstrap", "Gentoo", "All Penguins"),
+  xstart = c(0.04, 0.36, 0.5, 0.04),
+  xend   = c(0.30, 0.96, 0.96, 0.96),
+  y      = c(1.04, 1.04, 1.12, 1.2),     # stacked outside
+  side   = "top",
+  label_offset = 0.05
+)
+p2
+ggsave(filename = "p2.png", dpi = 300)
+# P3 - Verticle right
+
+peng_w <- subset(penguins, !is.na(sex) & !is.na(body_mass_g))
+
+base_w <- ggplot(peng_w, aes(x = sex, y = body_mass_g, col = species)) +
+  geom_jitter(width = 0.7, alpha = 0.85)  +
+  scale_fill_brewer(palette = "Pastel1", guide = "none") +
+  theme_minimal(base_size = 12) +
+  labs(x = NULL, y = "Body mass (g)") +
+  theme(
+    legend.position = "bottom",
+    plot.margin = margin(40, 0, 0, 0) # give space for top brackets
+  )
+specs3 <- rbind(
+  data.frame(side="right", start=0.08, end=0.55, pos=1.04, label="Adelie + Chinstrap"),
+  data.frame(side="right", start=0.6, end=0.92, pos=1.04, label="Gentoo")
+)
+p3 <- add_brackets(base_w, specs3, label_offset = 0.04, lwd = 1.3)
+print(p3)
+
+
+# P4 - Verticle right
+peng_i <- subset(penguins, !is.na(island) & !is.na(species))
+base_i <- ggplot(peng_i, aes(x = island, fill = species)) +
+  geom_bar(position = "fill", colour = "grey25", alpha = 0.9) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(x = NULL, y = "Species mix (proportion)", fill = "Species") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "bottom")
+specs4 <- rbind(
+  data.frame(side = "top",   start = 0.06, end = 0.65, pos = 1.04, label = "Mixed"),
+  data.frame(side = "top",   start = 0.7, end = 0.94, pos = 1.04, label = "Adelie")
+)
+
+p4 <- add_brackets(base_i, specs4, label_offset = 0.055, lwd = 1.2, cex = 0.9 ) 
+p4
+```
+
+#Patchwork for final figures
+```{r}
+library(patchwork)
+
+# Group p1 and p2 together and share legend only within this group
+p1p2 <- (p1 + p2) +
+  plot_layout(guides = "collect") &    # legend sharing inside this group
+  theme(legend.position = "right")     # legend position for p1 & p2
+
+# Combine with p3 and p4 (these keep their own legends)
+final_plot <- (p1p2) / (p3 | p4) +
+  plot_annotation(
+    tag_levels = "A",   # adds A, B, C, D labels
+    tag_suffix = ")"
+  )
+print(final_plot)
+# Save as A4
+ggsave(
+  filename = "final_plot_A4.png",
+  plot = final_plot,
+  width = 8.27, height = 11.69, units = "in", dpi = 300
+)
+
+```
+
+
