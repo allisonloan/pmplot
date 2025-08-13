@@ -4,20 +4,20 @@
 #' Use the sugar helpers for common orientations, or call this directly for maximum control.
 #'
 #' @param side One of `"top"`, `"bottom"`, `"left"`, `"right"`.
-#' @param start,end For horizontal brackets: x start/end (0–1). For vertical: y start/end (0–1).
-#' @param pos For horizontal brackets: y (0–1). For vertical: x (0–1). Values outside [0,1]
-#'   place the bracket outside the panel (use helpers that bump margins).
-#' @param label Character label to draw.
+#' @param start,end For horizontal: x range (0–1). For vertical: y range (0–1).
+#' @param pos For horizontal: y (0–1). For vertical: x (0–1). Values outside [0,1] place the bracket outside the panel.
+#' @param label Text label.
 #' @param cap Length of the cap “tick” in NPC units. Default `0.015`.
-#' @param label_offset Distance of the label from the line, in NPC units. Default `0.05`.
-#' @param lwd Line width for bracket and caps. Default `1.5`.
-#' @param cex Text size multiplier for label. Default `0.9`.
-#' @param fontface Text fontface for label. Default `"bold"`.
+#' @param label_offset Gap between bracket and label in NPC units. Default `0.05`.
+#' @param lwd Line width. Default `1.5`.
+#' @param label_size Label size (points). Default `10`.
+#' @param fontface Font face (`"plain"`, `"bold"`, etc.). Default `"plain"`.
+#' @param family Font family. Default `"Arial"`.
+#' @param cex Deprecated; use `label_size`.
 #'
-#' @return A grid \code{grob} suitable for \code{ggplot2::annotation_custom()}.
-#'
+#' @return A \code{grid} grob for use with \code{ggplot2::annotation_custom()}.
 #' @examples
-#' # See high-level helpers like add_horizontal_top() for end-to-end usage.
+#' # See helpers like add_horizontal_top() for usage.
 #' @export
 bracket_grob <- function(
     side = c("top","bottom","left","right"),
@@ -26,13 +26,21 @@ bracket_grob <- function(
     cap = 0.015,
     label_offset = 0.05,
     lwd = 1.5,
-    cex = 0.9,
-    fontface = "bold"
+    cex = 0.9,              # kept for legacy calls, but ignored if label_size given
+    fontface = "plain",     # <- not bold by default
+    family = "Arial",       # <- new default family
+    label_size = 10         # <- new default (pt)
 ){
   side <- match.arg(side)
   if (!requireNamespace("grid", quietly = TRUE)) {
     stop("Package 'grid' is required.")
   }
+  # If someone passes a different cex but leaves label_size at default, you can
+  # uncomment the next 2 lines to honor cex:
+  # if (!missing(cex) && missing(label_size)) {
+  #   label_size <- 10 * cex
+  # }
+
   withCallingHandlers({
     if (side %in% c("top","bottom")) {
       y_line <- grid::unit(c(pos, pos), "npc")
@@ -49,8 +57,10 @@ bracket_grob <- function(
         grid::linesGrob(x = x_line, y = y_line, gp = grid::gpar(lwd = lwd)),
         grid::linesGrob(x = x_capL, y = y_cap,  gp = grid::gpar(lwd = lwd)),
         grid::linesGrob(x = x_capR, y = y_cap,  gp = grid::gpar(lwd = lwd)),
-        grid::textGrob(label, x = x_lab, y = y_lab, rot = rot,
-                       gp = grid::gpar(cex = cex, fontface = fontface))
+        grid::textGrob(
+          label, x = x_lab, y = y_lab, rot = rot,
+          gp = grid::gpar(fontsize = label_size, fontface = fontface, fontfamily = family)
+        )
       )
     } else {
       x_line <- grid::unit(c(pos, pos), "npc")
@@ -67,12 +77,15 @@ bracket_grob <- function(
         grid::linesGrob(x = x_line, y = y_line, gp = grid::gpar(lwd = lwd)),
         grid::linesGrob(x = x_cap,  y = y_capT, gp = grid::gpar(lwd = lwd)),
         grid::linesGrob(x = x_cap,  y = y_capB, gp = grid::gpar(lwd = lwd)),
-        grid::textGrob(label, x = x_lab, y = y_lab, rot = rot,
-                       gp = grid::gpar(cex = cex, fontface = fontface))
+        grid::textGrob(
+          label, x = x_lab, y = y_lab, rot = rot,
+          gp = grid::gpar(fontsize = label_size, fontface = fontface, fontfamily = family)
+        )
       )
     }
   }, error = function(e) stop("Failed to build bracket_grob: ", e$message))
 }
+
 
 # ------------------------
 # Internal: margin + clip
@@ -535,5 +548,40 @@ add_faceted_brackets <- function(p, specs_df,
     )
   }
   p
+}
+#' A minimal, print-friendly theme with Arial 10pt (not bold)
+#'
+#' Use this to make all text default to Arial, 10 pt, plain (not bold).
+#' Call [set_pmplot_theme()] once per session to apply globally.
+#'
+#' @param base_family Font family, default "Arial".
+#' @param base_size   Base text size (points), default 10.
+#' @param base_face   Base text face, default "plain".
+#' @return A ggplot2 theme object.
+#' @export
+theme_pmplot <- function(base_family = "Arial", base_size = 10, base_face = "plain") {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Package 'ggplot2' is required.")
+  ggplot2::theme_minimal(base_size = base_size, base_family = base_family) +
+    ggplot2::theme(
+      text = ggplot2::element_text(family = base_family, size = base_size, face = base_face)
+    )
+}
+
+#' Apply pmplot theme globally
+#'
+#' Sets [theme_pmplot()] as the active theme for this R session.
+#' @inheritParams theme_pmplot
+#' @return (Invisibly) the previous theme, so you can restore it if needed.
+#' @examples
+#' \dontrun{
+#' old <- set_pmplot_theme()
+#' # ... make plots ...
+#' ggplot2::theme_set(old)  # restore
+#' }
+#' @export
+set_pmplot_theme <- function(base_family = "Arial", base_size = 10, base_face = "plain") {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Package 'ggplot2' is required.")
+  old <- ggplot2::theme_set(theme_pmplot(base_family, base_size, base_face))
+  invisible(old)
 }
 
