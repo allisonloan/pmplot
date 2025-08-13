@@ -32,13 +32,13 @@ specs1 <- data.frame(
   pos   = c(1.04, 1.04, 1.04, 1.04),
   label = c("Short Bills", "Long Bills", "Short Flippers", "Long Flippers")
 )
-p1 <- add_brackets(base_b, specs1, label_offset = 0.04)
+p1 <- add_brackets(base_b, specs1)
 p1 + theme(
   legend.position = c(1.15, 0.5),                # far outside the panel
   legend.justification = c("left", "center"),    # anchor legend's left edge
   plot.margin = margin(t = 40, r = 150, b = 0, l = 0)  # big right margin
 )
-ggsave(filename = "../example and plot/p1.png", dpi = 300)
+ggsave(filename = "../plot/p1.png", dpi = 300)
 
 print(p1)
 
@@ -53,7 +53,7 @@ p2 <- add_horizontal_stack(
   side   = "top",
   label_offset = 0.05
 )
-ggsave(filename = "../example and plot/p2.png", dpi = 300)
+ggsave(filename = "../plot/p2.png", dpi = 300)
 
 p2
 
@@ -75,7 +75,7 @@ specs3 <- rbind(
   data.frame(side="right", start=0.6, end=0.92, pos=1.04, label="Gentoo")
 )
 p3 <- add_brackets(base_w, specs3, label_offset = 0.04, lwd = 1.3)
-ggsave(filename = "../example and plot/p3.png", dpi = 300)
+ggsave(filename = "../plot/p3.png", dpi = 300)
 
 print(p3)
 
@@ -95,7 +95,7 @@ specs4 <- rbind(
 )
 
 p4 <- add_brackets(base_i, specs4, label_offset = 0.055, lwd = 1.2, cex = 0.9) 
-ggsave(filename = "../example and plot/p4.png", dpi = 300)
+ggsave(filename = "../plot/p4.png", dpi = 300)
 
 p4
 ```
@@ -118,7 +118,7 @@ final_plot <- (p1p2) / (p3 | p4) +
 print(final_plot)
 # Save as A4
 ggsave(
-  filename = "final_plot_A4.png",
+  filename = "../plot/final_plot_A4.png",
   plot = final_plot,
   width = 8.27, height = 11.69, units = "in", dpi = 300
 )

@@ -11,7 +11,7 @@ bracket_grob(
   pos,
   label,
   cap = 0.015,
-  label_offset = 0.05,
+  label_offset = 0.04,
   lwd = 1.5,
   cex = 0.9,
   fontface = "plain",

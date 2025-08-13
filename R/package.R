@@ -24,7 +24,7 @@ bracket_grob <- function(
     start, end, pos,
     label,
     cap = 0.015,
-    label_offset = 0.05,
+    label_offset = 0.04,
     lwd = 1.5,
     cex = 0.9,              # kept for legacy calls, but ignored if label_size given
     fontface = "plain",     # <- not bold by default
