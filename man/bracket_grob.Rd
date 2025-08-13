@@ -14,36 +14,41 @@ bracket_grob(
   label_offset = 0.05,
   lwd = 1.5,
   cex = 0.9,
-  fontface = "bold"
+  fontface = "plain",
+  family = "Arial",
+  label_size = 10
 )
 }
 \arguments{
 \item{side}{One of \code{"top"}, \code{"bottom"}, \code{"left"}, \code{"right"}.}
 
-\item{start, end}{For horizontal brackets: x start/end (0–1). For vertical: y start/end (0–1).}
+\item{start, end}{For horizontal: x range (0–1). For vertical: y range (0–1).}
 
-\item{pos}{For horizontal brackets: y (0–1). For vertical: x (0–1). Values outside \link{0,1}
-place the bracket outside the panel (use helpers that bump margins).}
+\item{pos}{For horizontal: y (0–1). For vertical: x (0–1). Values outside \link{0,1} place the bracket outside the panel.}
 
-\item{label}{Character label to draw.}
+\item{label}{Text label.}
 
 \item{cap}{Length of the cap “tick” in NPC units. Default \code{0.015}.}
 
-\item{label_offset}{Distance of the label from the line, in NPC units. Default \code{0.05}.}
+\item{label_offset}{Gap between bracket and label in NPC units. Default \code{0.05}.}
 
-\item{lwd}{Line width for bracket and caps. Default \code{1.5}.}
+\item{lwd}{Line width. Default \code{1.5}.}
 
-\item{cex}{Text size multiplier for label. Default \code{0.9}.}
+\item{cex}{Deprecated; use \code{label_size}.}
 
-\item{fontface}{Text fontface for label. Default \code{"bold"}.}
+\item{fontface}{Font face (\code{"plain"}, \code{"bold"}, etc.). Default \code{"plain"}.}
+
+\item{family}{Font family. Default \code{"Arial"}.}
+
+\item{label_size}{Label size (points). Default \code{10}.}
 }
 \value{
-A grid \code{grob} suitable for \code{ggplot2::annotation_custom()}.
+A \code{grid} grob for use with \code{ggplot2::annotation_custom()}.
 }
 \description{
 Creates a bracket (with caps and a label) in \strong{panel-normalized coordinates} (NPC; 0–1).
 Use the sugar helpers for common orientations, or call this directly for maximum control.
 }
 \examples{
-# See high-level helpers like add_horizontal_top() for end-to-end usage.
+# See helpers like add_horizontal_top() for usage.
 }

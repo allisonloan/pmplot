@@ -9,7 +9,7 @@ add_vertical_right(p, label, ystart, yend, x, margin_pt = 40, ...)
 \arguments{
 \item{p}{A ggplot object.}
 
-\item{label}{Character label to draw.}
+\item{label}{Text label.}
 
 \item{ystart, yend, x}{See \code{\link{add_vertical_right_grob}}.}
 

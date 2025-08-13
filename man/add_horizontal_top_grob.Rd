@@ -7,7 +7,7 @@
 add_horizontal_top_grob(label, xstart, xend, y, ...)
 }
 \arguments{
-\item{label}{Character label to draw.}
+\item{label}{Text label.}
 
 \item{xstart, xend}{Horizontal start/end (0–1); @param y Vertical NPC (0–1).}
 }

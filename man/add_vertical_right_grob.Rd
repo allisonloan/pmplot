@@ -7,7 +7,7 @@
 add_vertical_right_grob(label, ystart, yend, x, ...)
 }
 \arguments{
-\item{label}{Character label to draw.}
+\item{label}{Text label.}
 
 \item{ystart, yend}{Vertical start/end (0–1); @param x Horizontal NPC (0–1).}
 }

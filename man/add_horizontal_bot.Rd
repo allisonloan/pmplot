@@ -9,7 +9,7 @@ add_horizontal_bot(p, label, xstart, xend, y, margin_pt = 40, ...)
 \arguments{
 \item{p}{A ggplot object.}
 
-\item{label}{Character label to draw.}
+\item{label}{Text label.}
 
 \item{xstart, xend}{Horizontal start/end (0–1); @param y Vertical NPC (0–1).}
 
