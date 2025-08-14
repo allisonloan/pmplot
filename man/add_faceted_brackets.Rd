@@ -2,7 +2,7 @@
 % Please edit documentation in R/package.R
 \name{add_faceted_brackets}
 \alias{add_faceted_brackets}
-\title{Add facet-targeted brackets using a spec data frame}
+\title{Add facet-targeted brackets using a specs df (rows matched to facet columns)}
 \usage{
 add_faceted_brackets(
   p,
@@ -12,43 +12,10 @@ add_faceted_brackets(
   pos_col = "pos",
   label_col = "label",
   side_col = "side",
-  margin_pt = 40,
+  margin_pt = 60,
   ...
 )
 }
-\arguments{
-\item{p}{A faceted ggplot.}
-
-\item{specs_df}{Data frame with the facet columns present in \code{p$data}, plus
-NPC columns \code{start}, \code{end}, \code{pos}, and \code{side}, and a \code{label}.}
-
-\item{start_col, end_col, pos_col, label_col, side_col}{Column names in \code{specs_df}.}
-
-\item{margin_pt}{Base margin (points) used by the stacking-aware bump. Default \code{40}.}
-
-\item{...}{Passed to \code{\link{bracket_grob}}.}
-}
-\value{
-A ggplot with facet-specific brackets.
-}
 \description{
-Adds brackets only to the facets whose rows match \code{specs_df}'s facet columns.
-Automatically adjusts margins for outside/stacked layers per side.
-}
-\examples{
-\donttest{
-pf <- ggplot2::ggplot(mtcars, ggplot2::aes(mpg, wt)) +
-  ggplot2::geom_point() +
-  ggplot2::facet_wrap(~cyl)
-
-specs <- data.frame(
-  cyl   = c(4, 6),
-  side  = c("top","right"),
-  start = c(0.2, 0.2),
-  end   = c(0.8, 0.8),
-  pos   = c(1.05, 1.05),
-  label = c("Facet 4", "Facet 6")
-)
-add_faceted_brackets(pf, specs)
-}
+Add facet-targeted brackets using a specs df (rows matched to facet columns)
 }

@@ -7,8 +7,11 @@ library(pmplot)
 library(grid) 
 ```
 
+
 #pmplot example using penguins dataset
 ```{r}
+# pmplot example using penguins dataset
+
 # Clean data for plotting
 peng <- subset(
   penguins,
@@ -23,42 +26,68 @@ base_b <- ggplot(peng, aes(bill_length_mm, flipper_length_mm, color = species)) 
   labs(x = "Bill length (mm)", y = "Flipper length (mm)", color = "Species") +
   theme_minimal(base_size = 12)
 
-# P1 — Horizontal and verticle mixed
+# -------------------------
+# P1 — Mixed horizontals + verticals (now using groups)
+# -------------------------
+# Idea: split x into 2 equal-width bins (short vs long bills) and y into 2 bins
+# to mark short vs long flippers. Positions are in NPC via n_groups + g_start/g_end.
 
-specs1 <- data.frame(
-  side  = c("top","top", "right","right"),
-  start = c(0.08, 0.43, 0.20, 0.60),
-  end   = c(0.4, 0.95, 0.50, 0.90),
-  pos   = c(1.04, 1.04, 1.04, 1.04),
-  label = c("Short Bills", "Long Bills", "Short Flippers", "Long Flippers")
-)
-p1 <- add_brackets(base_b, specs1)
-p1 + theme(
-  legend.position = c(1.15, 0.5),                # far outside the panel
-  legend.justification = c("left", "center"),    # anchor legend's left edge
-  plot.margin = margin(t = 40, r = 150, b = 0, l = 0)  # big right margin
-)
-ggsave(filename = "../plot/p1.png", dpi = 300)
-
-print(p1)
-
-# P2 — Stacked horizontals (top) 
-
-p2 <- add_horizontal_stack(
+# Top brackets (x split into 2 equal regions)
+p1 <- add_by_groups(
   base_b,
-  labels = c("Adelie", "Chinstrap", "Gentoo", "All Penguins"),
-  xstart = c(0.04, 0.36, 0.5, 0.04),
-  xend   = c(0.30, 0.96, 0.96, 0.96),
-  y      = c(1.04, 1.04, 1.12, 1.2),     # stacked outside
-  side   = "top",
+  side    = "top",
+  labels  = c("Short Bills", "Long Bills"),
+  n_groups = 2,
+  g_start = c(1, 2),       # left half, right half
+  g_end   = c(1, 2),
+  pos     = 1.06,          # nudge above panel
+  pad     = 0.03,
   label_offset = 0.05
 )
-ggsave(filename = "../plot/p2.png", dpi = 300)
 
+# Right brackets (y split into 2 equal regions)
+p1 <- add_by_groups(
+  p1,
+  side    = "right",
+  labels  = c("Short Flippers", "Long Flippers"),
+  n_groups = 2,
+  g_start = c(1, 2),       # lower half, upper half
+  g_end   = c(1, 2),
+  pos     = 1.06,          # nudge to the right of panel
+  pad     = 0.03,
+  label_offset = 0.05
+)
+
+# Nudge legend far right so it won’t overlap brackets
+p1 <- p1 + theme(
+  legend.position = c(1.15, 0.5),
+  legend.justification = c("left", "center"),
+  plot.margin = margin(t = 40, r = 150, b = 0, l = 0)
+)
+
+ggsave(filename = "../plot/p1.png", p1, dpi = 300)
+p1
+
+# -------------------------
+# P2 — Stacked horizontals (top) using group-based spans
+# -------------------------
+# We’ll split x into 3 equal bins and label them like species clusters,
+# plus one "All Penguins" band spanning all 3 bins at a higher y.
+
+p2 <- add_brackets_simple(
+  base_b,
+  side  = "top",
+  start = c(0.04, 0.36, 0.50, 0.04),   # manual NPC coords
+  end   = c(0.30, 0.96, 0.96, 0.96),
+  pos   = c(1.04, 1.04, 1.12, 1.20),   # vertical position
+  label = c("Adelie", "Chinstrap", "Gentoo", "All Penguins"),
+  label_offset = 0.05
+)
+ggsave(filename = "../plot/p2.png", p2, dpi = 300)
 p2
-
-# P3 - Verticle right
-
+# -------------------------
+# P3 — Vertical brackets (right) on body mass by sex
+# -------------------------
 peng_w <- subset(penguins, !is.na(sex) & !is.na(body_mass_g))
 
 base_w <- ggplot(peng_w, aes(x = sex, y = body_mass_g, col = species)) +
@@ -66,22 +95,30 @@ base_w <- ggplot(peng_w, aes(x = sex, y = body_mass_g, col = species)) +
   scale_fill_brewer(palette = "Pastel1", guide = "none") +
   theme_minimal(base_size = 12) +
   labs(x = NULL, y = "Body mass (g)") +
-  theme(
-    legend.position = "bottom",
-    plot.margin = margin(40, 0, 0, 0) # give space for top brackets
-  )
-specs3 <- rbind(
-  data.frame(side="right", start=0.08, end=0.55, pos=1.04, label="Adelie + Chinstrap"),
-  data.frame(side="right", start=0.6, end=0.92, pos=1.04, label="Gentoo")
+  theme(legend.position = "bottom",
+        plot.margin = margin(40, 0, 0, 0))
+
+# Split y into 2 equal regions (low vs high mass)
+p3 <- add_by_groups(
+  base_w,
+  side    = "right",
+  labels  = c("Lower Mass", "Higher Mass"),
+  n_groups = 2,
+  g_start = c(1, 2),
+  g_end   = c(1, 2),
+  pos     = 1.06,
+  pad     = 0.03,
+  label_offset = 0.04,
+  lwd = 1.3
 )
-p3 <- add_brackets(base_w, specs3, label_offset = 0.04, lwd = 1.3)
-ggsave(filename = "../plot/p3.png", dpi = 300)
 
-print(p3)
-
-
-# P4 - Verticle right
+ggsave(filename = "../plot/p3.png", p3, dpi = 300)
+p3
+# -------------------------
+# P4 — Horizontal brackets (top) on island × species proportions
+# -------------------------
 peng_i <- subset(penguins, !is.na(island) & !is.na(species))
+
 base_i <- ggplot(peng_i, aes(x = island, fill = species)) +
   geom_bar(position = "fill", colour = "grey25", alpha = 0.9) +
   scale_y_continuous(labels = scales::percent_format()) +
@@ -89,15 +126,24 @@ base_i <- ggplot(peng_i, aes(x = island, fill = species)) +
   labs(x = NULL, y = "Species mix (proportion)", fill = "Species") +
   theme_minimal(base_size = 12) +
   theme(legend.position = "bottom")
-specs4 <- rbind(
-  data.frame(side = "top",   start = 0.06, end = 0.65, pos = 1.04, label = "Mixed"),
-  data.frame(side = "top",   start = 0.7, end = 0.94, pos = 1.04, label = "Adelie")
+
+# There are 3 islands on x → make 2 bands: first two islands grouped, then last island
+p4 <- add_by_groups(
+  base_i,
+  side    = "top",
+  labels  = c("Mixed", "Adelie"),
+  n_groups = 3,
+  g_start = c(1, 3),       # groups 1..2, and 3..3
+  g_end   = c(2, 3),
+  pos     = 1.06,
+  pad     = 0.03,
+  label_offset = 0.055,
+  lwd = 1.2
 )
 
-p4 <- add_brackets(base_i, specs4, label_offset = 0.055, lwd = 1.2, cex = 0.9) 
-ggsave(filename = "../plot/p4.png", dpi = 300)
-
+ggsave(filename = "../plot/p4.png", p4, dpi = 300)
 p4
+
 ```
 
 #Patchwork for final figures

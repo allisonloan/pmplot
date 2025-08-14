@@ -2,21 +2,10 @@
 % Please edit documentation in R/package.R
 \name{theme_pmplot}
 \alias{theme_pmplot}
-\title{A minimal, print-friendly theme with Arial 10pt (not bold)}
+\title{Minimal print-friendly theme (base_family NULL by default)}
 \usage{
-theme_pmplot(base_family = "Arial", base_size = 10, base_face = "plain")
-}
-\arguments{
-\item{base_family}{Font family, default "Arial".}
-
-\item{base_size}{Base text size (points), default 10.}
-
-\item{base_face}{Base text face, default "plain".}
-}
-\value{
-A ggplot2 theme object.
+theme_pmplot(base_family = NULL, base_size = 10, base_face = "plain")
 }
 \description{
-Use this to make all text default to Arial, 10 pt, plain (not bold).
-Call \code{\link[=set_pmplot_theme]{set_pmplot_theme()}} once per session to apply globally.
+Minimal print-friendly theme (base_family NULL by default)
 }

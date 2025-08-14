@@ -35,17 +35,22 @@ a
   - Two right bands: "Short Flippers", "Long Flippers"  
 - **Legend**: Nudged far right
 ```r
-specs1 <- data.frame(
-  side  = c("top","top", "right","right"),
-  start = c(0.08, 0.43, 0.20, 0.60),
-  end   = c(0.4, 0.95, 0.50, 0.90),
-  pos   = c(1.04, 1.04, 1.04, 1.04),
-  label = c("Short Bills", "Long Bills", "Short Flippers", "Long Flippers")
+p1 <- add_by_groups(
+  p1,
+  side    = "right",
+  labels  = c("Short Flippers", "Long Flippers"),
+  n_groups = 2,
+  g_start = c(1, 2),       # lower half, upper half
+  g_end   = c(1, 2),
+  pos     = 1.06,          # nudge to the right of panel
+  pad     = 0.03,
+  label_offset = 0.05
 )
-p1 <- add_brackets(base_b, specs1)
-p1 + theme(
+
+# Nudge legend far right so it won’t overlap brackets
+p1 <- p1 + theme(
   legend.position = c(1.15, 0.5),
-  legend.justification = c("left", "center"), 
+  legend.justification = c("left", "center"),
   plot.margin = margin(t = 40, r = 150, b = 0, l = 0)
 )
 ```
@@ -57,13 +62,13 @@ p1 + theme(
      - Three species-level bands plus a higher “All Penguins” band, stacked above the panel (increasing y) 
 
 ```r
-p2 <- add_horizontal_stack(
+p2 <- add_brackets_simple(
   base_b,
-  labels = c("Adelie", "Chinstrap", "Gentoo", "All Penguins"),
-  xstart = c(0.04, 0.36, 0.5, 0.04),
-  xend   = c(0.30, 0.96, 0.96, 0.96),
-  y      = c(1.04, 1.04, 1.12, 1.2),     # stacked outside
-  side   = "top",
+  side  = "top",
+  start = c(0.04, 0.36, 0.50, 0.04),   # manual NPC coords
+  end   = c(0.30, 0.96, 0.96, 0.96),
+  pos   = c(1.04, 1.04, 1.12, 1.20),   # vertical position
+  label = c("Adelie", "Chinstrap", "Gentoo", "All Penguins"),
   label_offset = 0.05
 )
 ```
@@ -75,11 +80,19 @@ p2 <- add_horizontal_stack(
      - Two right ranges (“Adelie + Chinstrap”, “Gentoo”) highlighting y-intervalsband, stacked above the panel (increasing y) 
 
 ```r
-specs3 <- rbind(
-  data.frame(side="right", start=0.08, end=0.55, pos=1.04, label="Adelie + Chinstrap"),
-  data.frame(side="right", start=0.6, end=0.92, pos=1.04, label="Gentoo")
+p3 <- add_by_groups(
+  base_w,
+  side    = "right",
+  labels  = c("Lower Mass", "Higher Mass"),
+  n_groups = 2,
+  g_start = c(1, 2),
+  g_end   = c(1, 2),
+  pos     = 1.06,
+  pad     = 0.03,
+  label_offset = 0.04,
+  lwd = 1.3
 )
-p3 <- add_brackets(base_w, specs3, label_offset = 0.04, lwd = 1.3)
+
 ```
 ![Plot 3](R/plot/p3.png)
 ### **Example 4 — Horizontal Top**  
@@ -88,11 +101,17 @@ p3 <- add_brackets(base_w, specs3, label_offset = 0.04, lwd = 1.3)
      - Two top bands (e.g., “Mixed”, “Adelie”) spanning different x-ranges over the categories
 
 ```r
-specs4 <- rbind(
-  data.frame(side = "top",   start = 0.06, end = 0.65, pos = 1.04, label = "Mixed"),
-  data.frame(side = "top",   start = 0.7, end = 0.94, pos = 1.04, label = "Adelie")
+p4 <- add_by_groups(
+  base_i,
+  side    = "top",
+  labels  = c("Mixed", "Adelie"),
+  n_groups = 3,
+  g_start = c(1, 3),       # groups 1..2, and 3..3
+  g_end   = c(2, 3),
+  pos     = 1.06,
+  pad     = 0.03,
+  label_offset = 0.055,
+  lwd = 1.2
 )
-
-p4 <- add_brackets(base_i, specs4, label_offset = 0.055, lwd = 1.2, cex = 0.9) 
 ```
 ![Plot 4](R/plot/p4.png)

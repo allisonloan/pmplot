@@ -11,44 +11,40 @@ bracket_grob(
   pos,
   label,
   cap = 0.015,
-  label_offset = 0.04,
+  label_offset = 0.05,
   lwd = 1.5,
-  cex = 0.9,
+  label_size = 10,
   fontface = "plain",
-  family = "Arial",
-  label_size = 10
+  family = NULL,
+  cex = NULL
 )
 }
 \arguments{
-\item{side}{One of \code{"top"}, \code{"bottom"}, \code{"left"}, \code{"right"}.}
+\item{side}{One of "top","bottom","left","right".}
 
 \item{start, end}{For horizontal: x range (0–1). For vertical: y range (0–1).}
 
-\item{pos}{For horizontal: y (0–1). For vertical: x (0–1). Values outside \link{0,1} place the bracket outside the panel.}
+\item{pos}{For horizontal: y (0–1). For vertical: x (0–1). Values outside \link{0,1} draw outside the panel.}
 
 \item{label}{Text label.}
 
-\item{cap}{Length of the cap “tick” in NPC units. Default \code{0.015}.}
+\item{cap}{Length of the cap "tick" in NPC units. Default 0.015.}
 
-\item{label_offset}{Gap between bracket and label in NPC units. Default \code{0.05}.}
+\item{label_offset}{Gap between bracket and label in NPC. Default 0.05.}
 
-\item{lwd}{Line width. Default \code{1.5}.}
+\item{lwd}{Line width. Default 1.5.}
 
-\item{cex}{Deprecated; use \code{label_size}.}
+\item{label_size}{Label size (points). Default 10.}
 
-\item{fontface}{Font face (\code{"plain"}, \code{"bold"}, etc.). Default \code{"plain"}.}
+\item{fontface}{Font face ("plain","bold",...). Default "plain".}
 
-\item{family}{Font family. Default \code{"Arial"}.}
+\item{family}{Font family. Default NULL to avoid system font issues on CI.}
 
-\item{label_size}{Label size (points). Default \code{10}.}
+\item{cex}{Deprecated; use label_size.}
 }
 \value{
-A \code{grid} grob for use with \code{ggplot2::annotation_custom()}.
+A grid grob for use with ggplot2::annotation_custom()
 }
 \description{
-Creates a bracket (with caps and a label) in \strong{panel-normalized coordinates} (NPC; 0–1).
-Use the sugar helpers for common orientations, or call this directly for maximum control.
-}
-\examples{
-# See helpers like add_horizontal_top() for usage.
+Creates a bracket (with caps and a label) in panel-normalized coordinates (NPC; 0–1).
 }

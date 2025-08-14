@@ -4,25 +4,8 @@
 \alias{set_pmplot_theme}
 \title{Apply pmplot theme globally}
 \usage{
-set_pmplot_theme(base_family = "Arial", base_size = 10, base_face = "plain")
-}
-\arguments{
-\item{base_family}{Font family, default "Arial".}
-
-\item{base_size}{Base text size (points), default 10.}
-
-\item{base_face}{Base text face, default "plain".}
-}
-\value{
-(Invisibly) the previous theme, so you can restore it if needed.
+set_pmplot_theme(base_family = NULL, base_size = 10, base_face = "plain")
 }
 \description{
-Sets \code{\link[=theme_pmplot]{theme_pmplot()}} as the active theme for this R session.
-}
-\examples{
-\dontrun{
-old <- set_pmplot_theme()
-# ... make plots ...
-ggplot2::theme_set(old)  # restore
-}
+Apply pmplot theme globally
 }
