@@ -2,45 +2,12 @@
 % Please edit documentation in R/package.R
 \name{add_brackets}
 \alias{add_brackets}
-\title{Add multiple horizontal and/or vertical brackets in one call}
+\title{Add multiple horizontal and/or vertical brackets in one call (specs df)
+Expected columns: side, start, end, pos, label}
 \usage{
 add_brackets(p, specs_df, base_pt = 40, step_pt = 14, ...)
 }
-\arguments{
-\item{p}{A ggplot.}
-
-\item{specs_df}{Data frame with columns:
-\itemize{
-\item \code{side} — one of "top","bottom","left","right"
-\item \code{start} — start coordinate (x for horizontal, y for vertical), 0–1
-\item \code{end} — end coordinate (x for horizontal, y for vertical), 0–1
-\item \code{pos} — orthogonal position (y for horizontal, x for vertical)
-\item \code{label} — text label
-}}
-
-\item{base_pt}{Base margin (points) if an outside layer exists on a side. Default \code{40}.}
-
-\item{step_pt}{Extra margin (points) per additional outside layer on that side. Default \code{14}.}
-
-\item{...}{Passed to \code{\link{bracket_grob}} (\code{lwd}, \code{cex}, \code{label_offset}, etc.).}
-}
-\value{
-A ggplot with all brackets added.
-}
 \description{
-Takes a specs data frame (rows = brackets) and adds them all. Automatically
-adjusts margins for outside/stacked layers on each side.
-}
-\examples{
-\donttest{
-p <- ggplot2::ggplot(mtcars, ggplot2::aes(factor(cyl), mpg)) + ggplot2::geom_boxplot()
-specs <- data.frame(
-  side  = c("right","right","top","top"),
-  start = c(0.2, 0.6, 0.2, 0.5),
-  end   = c(0.5, 0.9, 0.4, 0.8),
-  pos   = c(1.05, 1.15, 1.05, 1.15),
-  label = c("VR1","VR2","HT1","HT2")
-)
-add_brackets(p, specs, label_offset = 0.07)
-}
+Add multiple horizontal and/or vertical brackets in one call (specs df)
+Expected columns: side, start, end, pos, label
 }

@@ -6,14 +6,6 @@
 \usage{
 add_bracket(p, grob)
 }
-\arguments{
-\item{p}{A ggplot object.}
-
-\item{grob}{A grob from \code{*_grob()} functions.}
-}
-\value{
-A ggplot with the annotation added.
-}
 \description{
-Convenience wrapper around \code{ggplot2::annotation_custom()}.
+Add a single bracket grob to a ggplot
 }
