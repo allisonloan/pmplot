@@ -214,34 +214,131 @@ add_by_groups <- function(p, side = c("top","bottom","left","right"),
 }
 
 # ------------------------
-# Single consolidated vectorized helper (replaces add_single/add_many/*_horizontal/*_vertical)
+# Helper: extract panel ranges & map data -> NPC
 # ------------------------
+.to_npc_coords <- function(p, side, start, end, pos) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Package 'ggplot2' is required.")
+  b  <- ggplot2::ggplot_build(p)
+  # Use first panel by default; extend as needed for faceting
+  pp <- b$layout$panel_params[[1]]
 
+  .get_range <- function(pp, axis = c("x","y")) {
+    axis <- match.arg(axis)
+    # ggplot2 >= 3.4: pp$x$range$range; older: pp$x.range
+    if (!is.null(pp[[axis]]) && !is.null(pp[[axis]]$range$range)) return(pp[[axis]]$range$range)
+    if (!is.null(pp[[paste0(axis, ".range")]]))                 return(pp[[paste0(axis, ".range")]])
+    if (!is.null(pp[[axis]]$range))                            return(pp[[axis]]$range)
+    stop("Could not extract ", axis, " range from ggplot panel.")
+  }
+
+  xr <- .get_range(pp, "x")
+  yr <- .get_range(pp, "y")
+
+  .norm <- function(v, r) (v - r[1]) / (r[2] - r[1])
+
+  if (side %in% c("top","bottom")) {
+    list(
+      start = .norm(start, xr),
+      end   = .norm(end,   xr),
+      pos   = .norm(pos,   yr)
+    )
+  } else {
+    list(
+      start = .norm(start, yr),
+      end   = .norm(end,   yr),
+      pos   = .norm(pos,   xr)
+    )
+  }
+}
+# helper (unchanged): map data -> NPC using panel ranges
+.to_npc_coords <- function(p, side, start, end, pos) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Package 'ggplot2' is required.")
+  b  <- ggplot2::ggplot_build(p)
+  pp <- b$layout$panel_params[[1]]
+
+  .get_range <- function(pp, axis = c("x","y")) {
+    axis <- match.arg(axis)
+    if (!is.null(pp[[axis]]) && !is.null(pp[[axis]]$range$range)) return(pp[[axis]]$range$range)
+    if (!is.null(pp[[paste0(axis, ".range")]]))                 return(pp[[paste0(axis, ".range")]])
+    if (!is.null(pp[[axis]]$range))                            return(pp[[axis]]$range)
+    stop("Could not extract ", axis, " range from ggplot panel.")
+  }
+
+  xr <- .get_range(pp, "x")
+  yr <- .get_range(pp, "y")
+  .norm <- function(v, r) (v - r[1]) / (r[2] - r[1])
+
+  if (side %in% c("top","bottom")) {
+    list(start = .norm(start, xr), end = .norm(end, xr), pos = .norm(pos, yr))
+  } else {
+    list(start = .norm(start, yr), end = .norm(end, yr), pos = .norm(pos, xr))
+  }
+}
+# helper (unchanged): map data -> NPC using panel ranges
+.to_npc_coords <- function(p, side, start, end, pos) {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Package 'ggplot2' is required.")
+  b  <- ggplot2::ggplot_build(p)
+  pp <- b$layout$panel_params[[1]]
+
+  .get_range <- function(pp, axis = c("x","y")) {
+    axis <- match.arg(axis)
+    if (!is.null(pp[[axis]]) && !is.null(pp[[axis]]$range$range)) return(pp[[axis]]$range$range)
+    if (!is.null(pp[[paste0(axis, ".range")]]))                 return(pp[[paste0(axis, ".range")]])
+    if (!is.null(pp[[axis]]$range))                            return(pp[[axis]]$range)
+    stop("Could not extract ", axis, " range from ggplot panel.")
+  }
+
+  xr <- .get_range(pp, "x")
+  yr <- .get_range(pp, "y")
+  .norm <- function(v, r) (v - r[1]) / (r[2] - r[1])
+
+  if (side %in% c("top","bottom")) {
+    list(start = .norm(start, xr), end = .norm(end, xr), pos = .norm(pos, yr))
+  } else {
+    list(start = .norm(start, yr), end = .norm(end, yr), pos = .norm(pos, xr))
+  }
+}
+# ------------------------
+# UPDATED: add_brackets_simple() with coord = "npc" | "data"
+# ------------------------
 #' Add brackets on one side with vectorized inputs.
-#'
-#' This replaces `add_single()`, `add_many()`, `add_many_horizontal()`, and `add_many_vertical()`.
-#' Pass scalars or vectors for labels/start/end/pos. Scalars will be recycled.
 #'
 #' @param p ggplot object
 #' @param side One of "top","bottom","left","right"
 #' @param labels Character vector (length 1 ok)
-#' @param start,end Numeric 0–1 (vectors or scalars)
-#' @param pos Numeric 0–1 (or outside) where the bracket line sits
+#' @param start,end Positions along the bracket axis.
+#'        If coord = "npc", values must be in [0,1].
+#'        If coord = "data", values are in data units of that axis (e.g., x for top/bottom).
+#' @param pos Position of the bracket line on the perpendicular axis.
+#'        If coord = "npc", in [0,1] (values outside draw outside the panel).
+#'        If coord = "data", in data units of the perpendicular axis (y for top/bottom, x for left/right).
+#' @param coord "npc" (default) or "data" to interpret start/end/pos
 #' @param margin_pt Base margin to add on the side (default 60)
 #' @param ... Passed to `bracket_grob()` (e.g., label_size, fontface, family, cap, label_offset, lwd)
 #' @export
+# UPDATED: safely vectorize ... per bracket
 add_brackets_simple <- function(p,
                                 side = c("top","bottom","left","right"),
                                 labels, start, end, pos,
+                                coord = c("npc","data"),
                                 margin_pt = 60, ...) {
-  side <- match.arg(side)
+  side  <- match.arg(side)
+  coord <- match.arg(coord)
 
-  # Recycle lengths
+  # Base vectors (recycle)
   len <- max(length(labels), length(start), length(end), length(pos))
   labels <- rep(labels, length.out = len)
   start  <- rep(start,  length.out = len)
   end    <- rep(end,    length.out = len)
   pos    <- rep(pos,    length.out = len)
+
+  # Convert from data -> NPC if requested
+  if (coord == "data") {
+    mapped <- .to_npc_coords(p, side, start, end, pos)
+    start  <- mapped$start
+    end    <- mapped$end
+    pos    <- mapped$pos
+  }
 
   # One-time margin bump on that side
   if (side == "top")    p <- .bump_margin(p, top    = margin_pt)
@@ -249,12 +346,30 @@ add_brackets_simple <- function(p,
   if (side == "left")   p <- .bump_margin(p, left   = margin_pt)
   if (side == "right")  p <- .bump_margin(p, right  = margin_pt)
 
-  # Add all brackets
+  # Capture extra args and validate lengths
+  dots <- list(...)
+  if (length(dots)) {
+    for (nm in names(dots)) {
+      v <- dots[[nm]]
+      if (!(length(v) %in% c(1L, len))) {
+        stop(sprintf("Argument `%s` must be length 1 or %d (got %d).", nm, len, length(v)))
+      }
+    }
+  }
+
+  # Add all brackets, indexing ... per i
   for (i in seq_len(len)) {
-    p <- add_bracket(p, bracket_grob(side, start[i], end[i], pos[i], labels[i], ...))
+    dots_i <- lapply(dots, function(v) if (length(v) == 1L) v else v[i])
+    args_i <- c(
+      list(side = side, start = start[i], end = end[i], pos = pos[i], label = labels[i]),
+      dots_i
+    )
+    p <- add_bracket(p, do.call(bracket_grob, args_i))
   }
   p
 }
+
+
 
 # ------------------------
 # OPTIONAL: minimal aliases (kept for discoverability)

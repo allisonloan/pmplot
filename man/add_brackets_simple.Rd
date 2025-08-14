@@ -15,6 +15,7 @@ add_brackets_simple(
   start,
   end,
   pos,
+  coord = c("npc", "data"),
   margin_pt = 60,
   ...
 )
@@ -34,17 +35,22 @@ add_vertical_left(p, label, ystart, yend, x, margin_pt = 60, ...)
 
 \item{labels}{Character vector (length 1 ok)}
 
-\item{start, end}{Numeric 0–1 (vectors or scalars)}
+\item{start, end}{Positions along the bracket axis.
+If coord = "npc", values must be in \link{0,1}.
+If coord = "data", values are in data units of that axis (e.g., x for top/bottom).}
 
-\item{pos}{Numeric 0–1 (or outside) where the bracket line sits}
+\item{pos}{Position of the bracket line on the perpendicular axis.
+If coord = "npc", in \link{0,1} (values outside draw outside the panel).
+If coord = "data", in data units of the perpendicular axis (y for top/bottom, x for left/right).}
+
+\item{coord}{"npc" (default) or "data" to interpret start/end/pos}
 
 \item{margin_pt}{Base margin to add on the side (default 60)}
 
 \item{...}{Passed to \code{bracket_grob()} (e.g., label_size, fontface, family, cap, label_offset, lwd)}
 }
 \description{
-This replaces \code{add_single()}, \code{add_many()}, \code{add_many_horizontal()}, and \code{add_many_vertical()}.
-Pass scalars or vectors for labels/start/end/pos. Scalars will be recycled.
+Add brackets on one side with vectorized inputs.
 }
 \section{Functions}{
 \itemize{
