@@ -115,3 +115,22 @@ p4 <- add_by_groups(
 )
 ```
 ![Plot 4](R/plot/p4.png)
+
+### **Example 5 — Using this for significance plotting**  
+- **Brackets**:  
+     - Two horizontal top bands (e.g., “**”, “All groups”) spanning different x-ranges over the categories
+
+```r
+
+p5 <- add_brackets_simple(
+  p, side = "top", coord = "data",
+  labels = c("**", "All groups"),
+  start  = c(1.0, 0.5),
+  end    = c(2.0, 3.5),
+  pos    = c(8.2, 10),
+  label_offset = c(0.03, 0.04),
+  label_size   = c(10, 14),
+  fontface     = c("bold", "plain")) 
+
+```
+![Plot 5](R/plot/sig.png)

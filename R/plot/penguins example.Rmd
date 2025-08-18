@@ -81,7 +81,7 @@ p2 <- add_brackets_simple(
   end   = c(0.30, 0.96, 0.96, 0.96),
   pos   = c(1.04, 1.04, 1.12, 1.20),   # vertical position
   label = c("Adelie", "Chinstrap", "Gentoo", "All Penguins"),
-  label_offset = 0.05
+  label_offset = 0.04
 )
 ggsave(filename = "../plot/p2.png", p2, dpi = 300)
 p2
@@ -170,9 +170,9 @@ ggsave(
 )
 
 ```
-```{r}
-library(ggplot2)
 
+# Adding Significance
+```{r}
 df <- data.frame(
   group = c("A","B","C"),
   mean  = c(5, 7, 6),
@@ -186,31 +186,16 @@ p <- ggplot(df, aes(x = group, y = mean)) +
   coord_cartesian(clip = "off") +
   theme_minimal()
 
-# Discrete x gets mapped internally; you can use midpoints like 1.0, 2.5, 3.0, etc.
-# Here: bracket from the middle of bar 1 to halfway between bars 2 and 3
-p_sig <- add_brackets_simple(
-  p, side = "top",
-  labels = "p < 0.05",
-  start  = 1.0,   # middle of "A"
-  end    = 2,   # halfway between "B" and "C"
-  pos    = 8.2,   # y position in data units
-  coord  = "data",
-  label_offset = 0.15,
-  label_size   = 10,
-  fontface     = "bold"
-)
-p_sig
 
 p_sig2 <- add_brackets_simple(
   p, side = "top", coord = "data",
-  labels = c("A vs B", "All groups"),
-  start  = c(1.0, 1.0),
-  end    = c(2.0, 3.0),
-  pos    = c(8.2, 8.9),
-  label_offset = c(0.12, 0.18),     # <- vectorized safely
-  label_size   = c(10, 11),         # <- vectorized safely
-  fontface     = c("bold", "plain") # <- vectorized safely
-)
+  labels = c("**", "All groups"),
+  start  = c(1.0, 0.5),
+  end    = c(2.0, 3.5),
+  pos    = c(8.2, 10),
+  label_offset = c(0.03, 0.04),     # <- vectorized safely
+  label_size   = c(10, 14),         # <- vectorized safely
+  fontface     = c("bold", "plain")) # <- vectorized safely
 
 p_sig2
 ```
