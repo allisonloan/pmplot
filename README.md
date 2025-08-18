@@ -133,4 +133,4 @@ p5 <- add_brackets_simple(
   fontface     = c("bold", "plain")) 
 
 ```
-![Plot 5](R/plot/sig.png)
+![Plot 5](R/plot/significance.png)
