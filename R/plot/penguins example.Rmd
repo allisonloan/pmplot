@@ -193,11 +193,12 @@ p_sig2 <- add_brackets_simple(
   start  = c(1.0, 0.5),
   end    = c(2.0, 3.5),
   pos    = c(8.2, 10),
-  label_offset = c(0.03, 0.04),     # <- vectorized safely
-  label_size   = c(10, 14),         # <- vectorized safely
-  fontface     = c("bold", "plain")) # <- vectorized safely
+  label_offset = c(0.03, 0.04),
+  label_size   = c(10, 14),
+  fontface     = c("bold", "plain")) 
 
 p_sig2
+ggsave(filename = "../plot/significance.png", plot = final_plot, dpi = 300)
 ```
 
 
